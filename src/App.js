@@ -7,19 +7,20 @@ function App() {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(1);
-  // const [perPage, setPerPage] = useState(2);
-  const countPerPage = 12;
+  const [perPage, setPerPage] = useState();
+  const [total, setTotal] = useState();
+  const [totalPages, setTotalPages] = useState();
 
-  const getUserList = async page => {
-    console.log(page);
-    const pages = page ? page : 1;
+  const getUserList = async (page, count) => {
     await axios
-      .get(
-        `https://reqres.in/api/users?page=${pages}&per_page=${countPerPage}&delay=1`
-      )
+      .get(`https://reqres.in/api/users?page=${page}&per_page=${count}`)
       .then(res => {
+        console.log(res.data);
+        setPerPage(res.data.per_page);
         setUsers(res.data.data);
-        console.log(res.data.data);
+        setPage(res.data.page);
+        setTotal(res.data.total);
+        setTotalPages(res.data.total_pages);
       })
       .catch(err => {
         console.log(err);
@@ -27,7 +28,7 @@ function App() {
   };
 
   useEffect(() => {
-    getUserList();
+    getUserList(page, total);
   }, []);
 
   const handlePerRowsChange = async (newPerPage, page) => {
@@ -72,15 +73,17 @@ function App() {
     ...selectedRowKeys,
     onChange: onSelectChange,
   };
+
   return (
     <Table
       columns={columns}
       dataSource={getData}
       onChangeRowsPerPage={handlePerRowsChange}
       pagination={{
-        defaultPageSize: 4,
+        defaultPageSize: perPage,
         pageSizeOptions: ['5', '10', '20'],
         showSizeChanger: true,
+        onChange: page => setPage(page),
       }}
     />
   );
